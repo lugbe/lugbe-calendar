@@ -1,0 +1,82 @@
+# This file contains a brief installation instuction
+# for the LugBE Web Calendar.
+# Copyright Markus Wernig <wernigm@lugbe.ch> 2006-01-28
+# This is free software. You may use it under the terms of the Gnu General Public License
+# as found on http://www.gnu.org/licenses/gpl.html with no warranty whatsoever.
+
+# This calendar is hardcoded to use the mysql db engine through PHP. 
+# You will need to change the source code to use it with any other database.
+
+# Beware: There is no automatic installation. You will have to do everything by hand.
+# I've tried to outline the necessary steps below as good as possible
+
+1) Files and directories in the tarball
+
+/conf: 	Directory containing base configuration. 
+	- events.conf: Main configuration file and library. This file contains
+	most functions that are used by the scripts, plus shared configuration (like
+	database user and password etc.). This should not be accessible through
+	the webserver for security reasons (i.e. should be above the document root).
+	The directory is referenced via $BASEDIR/conf in some files. If you change
+	the file system layout you will have to adjust those references.
+	Note that the layout in this tarball does not conform to above recommendation.
+
+/include: Directory containing runtime include file(s) for the main scripts, especially
+	events.tmpl. The main reason for this is that we have two scripts (events.phtml 
+	and events_iframe.phtml) which do very much the same and share most of their
+	source. I've put this shared source into a separate file that gets included by
+	both. It is the main script. In order to be notified when somebody enters
+	a new event, you need to edit this file.
+
+/src: 	Directory with files to be evaluated by browsers
+	- events.css: Stylesheets
+	- functions.js: Javascript functions for calendar
+
+/events: Runtime directory. All other relevant files live here.
+	- events.phtml: Main script
+	- events_iframe.phtml: Main script when called through an IFRAME on another site
+	- index.phtml: File containing the IFRAME on the original LugBE site. Use as example.
+	- login.php: Script that checks admin logins and sets cookies. 
+	- reg.php: Script that handles registrations of users through website
+	- rss/: Directory containing the code necessary for making the events available as RSS feed.
+
+/images: The icons used by the calender.
+
+/lugbecalendar.dump: Empty database scheme containing the following tables:
+	- EVENTS: Main table that stores all events
+	- REGISTRATIONS: Information on who registered for which event
+	- PEOPLE: Administrators' credentials. 
+	  Note: There is no web frontend for managing administrative accounts. You must do so by hand.
+	Insert new administrators with 
+	"INSERT INTO `PEOPLE` VALUES ('','Firstname','Lastname','email@ddress','loginname',now(),password("user's password"),'','admin')"
+	These user(s) will be able to log into the calendar web interface and edit events.
+
+/events-notify.pl: Script to be run from cron daily. It will twice notify users who have
+	registered for an event: Once a day before the event and once on the same day.
+	You need to edit this file to reflect your file system paths.
+	
+
+
+2) Installation
+
+a) Create an empty mysql database.
+b) Create a runtime user in mysql for the calendar and issue him a password.
+c) Enter the information from a) and b) into /conf/events.conf (edit $DSN and $DB).
+d) Create the tables according to lugbecalendar.dump. 
+   You should be able to run "mysql -u root -p < lugbecalendar.dump"
+   if you edit the file first and replace $DB with your database's name from a)
+e) Grant the runtime user insert, delete, select and update privileges on the tables EVENTS, PEOPLE and REGISTRATIONS.
+f) Adjust the .phtml files to match the layout of your site. 
+   Replace all references to "events.lugbe.ch", "localhost"
+   and "www.lugbe.ch" with your own URLs. 
+   Replace all references to "mydomain.ch" with your own email addresses in "events.tmpl".
+   THE FILES WILL NOT WORK AT YOUR SITE IF YOU DON'T DO THAT.
+g) Copy all files to your web server's document root.
+h) Setup at least one administrator who will edit the events online (see above)
+i) Setup cron to run the script "events-notify.pl" once a day (preferrably in the morning)
+
+You might want to enable verbose error reporting in PHP ("display_errors = On") for debugging.
+For the RSS feed, the webserver must have write permissions to the feed*.xml files in the rss/ subdirectory.
+
+Enjoy
+markus

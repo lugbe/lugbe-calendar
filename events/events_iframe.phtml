@@ -1,0 +1,124 @@
+<?php
+	// this is the default template all pages at www.lugbe.ch
+	// are built upon.
+
+	// markus@wernig.net
+
+	// define some variables that will be used by the included file
+
+# copyright markus@wernig.net 2005
+
+# This is free software. You may use it under the terms of the GPL.
+# See http://www.gnu.org/licenses/gpl.html
+
+	$page_title = "LugBE Veranstaltungen";
+	$author = "webmaster lugbe ch";
+	$changed_by = "";
+	$create_date = "";
+	$change_date = "";
+
+	// additional keywords for search engines
+
+	$additional_keywords= "";
+	$special_css_style = "";
+	$special_header = "";
+
+	// the documet root. we use file system paths for performance.
+	// ATTENTION: this may change!! Maybe we want an URL?
+
+	$document_root = "/www/doc/lugbe/www.lugbe.ch";
+
+	// this will be included in the header
+
+	$special_header_include_file_path ="";
+
+	// this will be included at the beginning of the body
+
+	$special_body_include_file_path =""; 
+
+	// if we include JS, this will become <SCRIPT LANGUAGE="Javascript" SRC="$javascript_src_file_path"> </SCRIPT>
+
+	$javascript_src_file_path ="";
+
+	// ***********************
+
+	// If we're called from somewhere else (e.g. in an iframe) we skip the site specific decoration
+
+	if(isset($_SERVER['HTTP_REFERER'])) {
+		$ref = $_SERVER['HTTP_REFERER'];
+	}
+
+	$REF_STRIP = array (
+		"http://www.lugbe.ch/action/events.phtml",
+		"http://lugbe.ch/action/events.phtml",
+		"http://www.lugbe.ch/action/",
+		"http://lugbe.ch/action/",
+		"http://markus.wernig.net/test/",
+		"http://markus.wernig.net/test/index.php",
+		"http://markus.wernig.net/test");
+		
+	if(isset($ref)) {
+
+		$header_include_file_path = "$document_root/include/header_include_iframe.tmpl";	
+	}
+	else {
+		// change the path here if you want to include another header
+	
+		$self = $_SERVER['SCRIPT_NAME'] = "/action/events/events.phtml";
+		$header_include_file_path = "$document_root/include/header_include.tmpl";
+	}
+	
+	// now include the headers
+	include $header_include_file_path;
+
+	/* Read in the base configuration */
+	
+	/* ADJUST THIS !!! */
+
+	if (!isset($BASEDIR)) {
+        	$BASEDIR = "..";
+	}
+
+	require_once("$BASEDIR/conf/events.conf");
+
+	if(!isset($COOKIE_DOMAIN)) {
+		$COOKIE_DOMAIN = $_SERVER['SERVER_NAME'];
+	}
+	if(!isset($_COOKIE[$COOKIE_NAME]) && (isset($_REQUEST['submit_anmelden']) || isset($_REQUEST['propose_eins']) || isset($_REQUEST['propose_zwei']))) {
+		$r=sendCookie($COOKIE_NAME,$COOKIE_DOMAIN,3600);
+	}
+
+?>
+
+
+<!-- HEADER END <<<<<<<<<
+*************************
+CONTENT START -->
+
+<LINK REL='stylesheet' MEDIA='screen' TYPE='text/css' HREF='/src/events.css'>
+
+<?php
+	include "$document_root/include/events.tmpl";
+?>
+
+<!-- CONTENT END <<<<<<<<<
+************************** 
+FOOTER START -->
+
+
+<?php 
+	// this will be included in the footer
+
+	$special_footer_include_file_path ="";
+
+	// now include the footers
+	// change the path here if you want to include another footer
+
+	if(isset($ref)) {
+		$footer_include_file_path = "$document_root/include/footer_include_iframe.tmpl";
+	}
+	else {
+		$footer_include_file_path = "$document_root/include/footer_include.tmpl";
+	}
+	include $footer_include_file_path;
+?>	    

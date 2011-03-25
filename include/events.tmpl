@@ -1,0 +1,346 @@
+<?php
+
+/* Connect to DB, exit on failure */
+$server=conn_db($DSN);
+
+/* set session if cookie is present */
+if(isset($_COOKIE[$COOKIE_NAME])) {
+	$session = &clean($_COOKIE[$COOKIE_NAME]);
+}
+else {
+	$session = 0;
+}
+
+global $server;
+global $session;
+global $DB;
+
+$ip = $_SERVER['REMOTE_ADDR'];
+if(!preg_match("/(\d){1,3}\.(\d){1,3}\.(\d){1,3}\.(\d){1,3}/", $ip)) {
+	$ip = "127.0.0.1";
+}
+
+/* Get current date */
+$date = getPaddedDate();
+
+$M = $date['mon'];
+$Y = $date['year'];
+
+/* Get year and month requested */
+if(isset($_REQUEST["YEAR"]) && (INT)($_REQUEST["YEAR"]) && $_REQUEST["YEAR"] > 1901 &&  $_REQUEST["YEAR"] < 2038) {
+	$Y = $_REQUEST["YEAR"] % 9999;
+}
+
+if(isset($_REQUEST["MONTH"]) && (INT)($_REQUEST["MONTH"]) && $_REQUEST["MONTH"] > 0) {
+	$M = $_REQUEST["MONTH"] % 13;
+	if($M < 10) {
+		$M = "0".$M;
+	}
+}
+
+/* Get number of days in requested month */
+$lastDay = date("j",mktime(0,0,0,$M+1,0,$Y));
+ 
+
+/* Get day requested */
+if(isset($_REQUEST["DAY"]) && (INT)($_REQUEST["DAY"]) && $_REQUEST["DAY"] > 0) {
+	$D = $_REQUEST["DAY"] % ($lastDay + 1);
+	if($D < 10) {
+		$D = "0".$D;
+	}
+}
+if(isset($D)) {
+	$mysqlMinDate=$Y."-"."$M"."-"."$D"." "."00".":"."00".":"."00";
+	$mysqlMaxDate=$Y."-"."$M"."-"."$D"." "."23".":"."59".":"."59";
+}
+else {
+	$mysqlMinDate=$Y."-"."$M"."-"."01"." "."00".":"."00".":"."00";
+	$mysqlMaxDate=$Y."-"."$M"."-"."$lastDay"." "."23".":"."59".":"."59";
+}
+
+/* Get event requested */
+if(isset($_REQUEST["IDevent"]) && (INT)($_REQUEST["IDevent"]) && $_REQUEST["IDevent"] > 0) {
+	$E = $_REQUEST["IDevent"];
+}
+
+/* Update db if necessary */
+
+/* For german Umlaute */
+setlocale (LC_ALL, 'de_DE');
+$msg="";
+
+if(isset($E) and isset($_REQUEST['anmelden-oh-yes']) && $_REQUEST['anmelden-oh-yes'] == "do-it") {
+
+	if($session) {
+		/* Check for valid email address */
+		$matches=array();
+		$eml = $_REQUEST['eml'];
+		if(isset($_REQUEST['eml']) && checkMail($eml,$msg)) {
+	
+			$sql = "insert into $DB.REGISTRATIONS (IDreg, FKIDevent, eml, registered, IP, session) values (\"\", $E, \"$eml\", now(), \"$ip\", \"$session\")";
+			if($result = mysql_query($sql, $server)) {
+
+				$sql = "update $DB.EVENTS set numReg = numReg+1 where IDevent = $E";
+				if(mysql_query($sql, $server)) {
+					$msg = "<div class=ok>Anmeldung erfolgreich. Danke. Wir sehen uns am Anlass. Unser System wird vor dem Anlass ein Erinnerungsmail an $eml schicken.</div>";
+				}
+				else {
+					$msg = "<div class=warn>Oooops! Die Registration ist fehlgeschlagen :-[</div>";
+				}
+			}
+			else {
+				$err=mysql_error();
+				if(strstr($err, "Duplicate entry")) {
+					$msg = "<div class=warn>Es gibt schon eine Anmeldung f&uuml;r diesen Anlass mit dieser Email-Adresse ($eml) oder dieser Browser-Session (Dauer: 1 Stunde).</div>";
+				}
+				else {
+					$msg = "<div class=warn>Oooops! Die Anmeldung ist fehlgeschlagen :-[</div>";
+				}
+			}
+		}
+	}
+	else {
+		$msg = "<div class=warn>Um sich anzumelden, m&uuml;ssen Cookies von unserer Domain angenommen werden.</div>";
+	}
+	unset($_REQUEST['IDevent']);
+}
+
+if(!isset($topmsg)) {
+	$topmsg = "";
+}
+
+if((isset($_REQUEST['propose_zwei']) || isset($_REQUEST['propose_drei'])) && isset($_REQUEST['IDevent'])) {
+
+	/* normalize input */
+
+	$t = $_REQUEST['title'];
+	$d = $_REQUEST['description'];
+	$e = &clean($_REQUEST['eml']);
+
+	/* first, unify tag markers and quotes */
+	$trans = array (
+		"&gt;"	=> ">",
+		"&#62;"	=> ">",
+		"&lt;"	=> "<",
+		"&#60;"	=> "<",
+		"\\\""	=> "\""	);
+	$d = strtr("$d", $trans);
+	$t = strtr("$t", $trans);
+
+	/* then, delete anything in html tags */
+
+	$d = preg_replace("/(\<.*\>|\<.*\\\n*\>|\\\*)/i", "", $d);
+	$t = preg_replace("/(\<.*\>|\\\*)/i", "", $t);
+
+	/* now, translate all html special chars to their html versions */
+
+	$d = htmlentities("$d", ENT_QUOTES, "ISO-8859-15");
+#	$d = htmlentities("$d", ENT_QUOTES, "UTF-8");
+#	$d = htmlentities("$d", ENT_QUOTES, "cp1252");
+	
+	if(isset($_REQUEST['status']) && $_REQUEST['status'] == "confirmed") {
+		$st = "confirmed";
+	}
+	else {
+		$st = "proposed";
+	}
+	if(isset($_REQUEST['IDevent']) && (INT)($_REQUEST['IDevent'])) {
+		$i = $_REQUEST['IDevent'];
+	}
+	else {
+		$i = "";
+	}
+	if(isset($_REQUEST['numReg']) && (INT)($_REQUEST['numReg'])) {
+		$nr = $_REQUEST['numReg'];
+	}
+	else {
+		$nr = "";
+	}
+	$tmp[0] = array(
+		"scheduled"     => "$_REQUEST[scheduled]",
+		"end"           => "$Y-$M-$D",
+		"numReg"        => $nr,
+		"status"        => "$st",
+		"title"         => "$t",
+		"description"   => "$d",
+		"eml"		=> "$_REQUEST[eml]",
+		"IDevent"       => $i);
+		
+	$EVENTS = array();
+	$EVENTS = $tmp;
+
+	/* only show confirmation mask if cookie set */
+	if(!$session) {
+		unset($_REQUEST['propose_zwei'],$_REQUEST['propose_drei'] );
+		$_REQUEST['propose_eins'] = "set";
+		$msg = "<div class=warn>Um ein neues Event einzutragen, m&uuml;ssen Cookies von unserer Domain angenommen werden.<br>
+(Falls Sie das Cookie eben erst akzeptiert haben, klicken Sie noch einmal auf &quot;Vorschau&quot;)</div>";
+		if($EVENTS[0]['IDevent'] == "new" || !$EVENTS[0]['IDevent']) {
+			$EVENTS[0]['IDevent'] = $_REQUEST['IDevent'] = "redo";
+		}
+	}
+	else {
+		if(!checkMail($e,$msg)) {
+			unset($_REQUEST['propose_zwei'],$_REQUEST['propose_drei'] );
+			$_REQUEST['propose_eins'] = "set";
+			if($EVENTS[0]['IDevent'] == "new" || !$EVENTS[0]['IDevent']) {
+				$EVENTS[0]['IDevent'] = $_REQUEST['IDevent'] = "redo";
+			}
+		}
+		if($d == "Beschreibung des Anlasses (in Prosa)" || $d == "" || $d == " " || $d == "\n" || $t == "Titel des Anlasses" || $t == "" || $t == " " || !$d || !$t) {
+			unset($_REQUEST['propose_zwei'],$_REQUEST['propose_drei'] );
+			$_REQUEST['propose_eins'] = "set";
+			$msg = "<div class=warn>Es wurde kein Titel oder kein Text eingegeben.</div>";
+			if($EVENTS[0]['IDevent'] == "new" || !$EVENTS[0]['IDevent']) {
+				$EVENTS[0]['IDevent'] = $_REQUEST['IDevent'] = "redo";
+			}
+		}
+	}
+	if(isset($_REQUEST['propose_drei']) && $session) {
+		addslashes($d);
+		addslashes($t);
+		
+		$s = "$Y-$M-$D " . $tmp[0]['scheduled'];
+
+		if(isAdmin($session)) {
+			if($i) {
+			// updating	
+				$sql = "update $DB.EVENTS set title=\"$t\", FKuid = 0, description = \"$d\", scheduled = \"$s\", status = \"$st\", eml = \"$e\" where IDevent = $i";
+			}
+			else {
+			// new
+				$sql = "insert into $DB.EVENTS (IDevent, title, FKuid, description, registered, scheduled, numReg, type, status, eml) values (\"\", \"$t\", 0, \"$d\", now(), \"$s\", 0, \"other\", \"$st\", \"$e\")";
+
+			}
+		}
+		else {
+			$sql = "insert into $DB.EVENTS (IDevent, title, FKuid, description, registered, scheduled, numReg, type, status, eml) values (\"\", \"$t\", 0, \"$d\", now(), \"$s\", 0, \"other\", \"proposed\", \"$e\")";
+		}
+
+		/* do the dirty */
+		if(mysql_query($sql, $server)) {
+			$msg = "<div class=ok>Der Anlass wurde eingetragen.";
+			if(!isAdmin($session)) {
+				$msg = $msg . " Danke f&uuml;r die Information. $e ist automatisch f&uuml;r den Event angemeldet. Der n&auml;chste Schritt ist die Best&auml;tigung durch die Verantwortlichen, die unter <br>info<img src=/images/tsign.gif alt=at border=0>mydom.ain erreichbar sind.</div>";
+
+				$notif = array (
+					"FROM" 		=> "kalender@mydom.ain",
+					"FROMMAIL"	=> "kalender@mydom.ain",
+					"TO"		=> "info@mydom.ain",
+					"SUBJECT"	=> "mydom.ain-Kalender: Neues Event eingetragen",
+					"MESSAGE"	=> "
+Folgendes Event wurde soeben im Event-Kalender eingetragen:
+
+Titel: $t
+Beschreibung: $d
+Datum: $s
+
+Eingetragen von: $e\n");
+
+				send_mail($notif);	
+			}
+			else {
+				$msg = $msg . "</div>";
+			}
+
+			# get ID of last entry
+			$sql = "select IDevent from $DB.EVENTS where title = \"$t\" and scheduled =\"$s\"";
+			$result = mysql_query($sql, $server);
+			$line = mysql_fetch_array($result, MYSQL_ASSOC);
+			if(isset($line['IDevent']) && $line['IDevent']) {
+				$E = $EVENTS[0]['IDevent'] = $line['IDevent'];
+			}
+			if(!isAdmin($session)) {
+				$sql = "insert into $DB.REGISTRATIONS (IDreg, FKIDevent, eml, registered, IP, session) values (\"\", $E, \"$e\", now(), \"$ip\", \"$session\")";
+
+				if($result = mysql_query($sql, $server)) {
+					if(!$msg) {
+						$msg = "<div class=ok>Anmeldung erfolgreich. Danke. Wir sehen uns am Anlass.</div>";
+					}
+				}
+				else {
+					$err=mysql_error();
+					if(strstr($err, "Duplicate entry")) {
+						$msg = "<div class=warn>Es gibt schon eine Anmeldung f&uuml;r diesen Anlass mit dieser Email-Adresse ($eml) oder dieser Browser-Session (Dauer: 1 Stunde).</div>";
+					}
+					else {
+						echo "$err";
+						$msg = "<div class=warn>Oooops! Die Anmeldung ist fehlgeschlagen :-[</div>";
+					}
+				}				
+			}
+		}
+		else {
+			$err=mysql_error();
+			if(strstr($err, "Duplicate entry")) {
+				$msg = "<div class=warn>Es gibt schon einen Anlass an diesem Datum und dieser Uhrzeit.</div>";
+			}
+			else {
+				$msg = "<div class=warn>Oooops! Die Anmeldung ist fehlgeschlagen :-[</div>";
+			}
+			unset($_REQUEST['propose_zwei'],$_REQUEST['propose_drei'] );
+			$_REQUEST['propose_eins'] = "set";
+			if($EVENTS[0]['IDevent'] == "new" || !$EVENTS[0]['IDevent']) {
+				$EVENTS[0]['IDevent'] = $_REQUEST['IDevent'] = "redo";
+			}
+		}
+	}
+}
+elseif($session && isAdmin($session) && isset($_REQUEST['delete_entry']) && isset($_REQUEST['IDevent']) && $_REQUEST['IDevent']) {
+	if( (INT)($_REQUEST['IDevent']) ) {
+		$sql = "delete from $DB.EVENTS where IDevent = $_REQUEST[IDevent]";
+		if(mysql_query($sql,$server)) {
+			$topmsg = "<div class=ok>Der Eintrag wurde gel&ouml;scht.</div>";
+			$sql = "delete from $DB.REGISTRATIONS where FKIDevent = $_REQUEST[IDevent]";
+			mysql_query($sql,$server);
+			unset($_REQUEST['IDevent'],$E);
+		}
+		else {
+			$err = mysql_error();
+			echo "$err";
+			$topmsg = "<div class=warn>Fehler beim L&ouml;schen des Eintrags.</div>";
+			unset($_REQUEST['IDevent'],$E);
+		}
+	}
+	else {
+		$topmsg="<div class=ok>Der Eintrag wurde gel&ouml;scht.</div>";
+		unset($_REQUEST['IDevent'],$E);
+	}
+}
+
+
+if(!isset($_REQUEST['propose_eins']) && !isset($_REQUEST['propose_zwei'])) {
+	/* Now get events for selected period */
+	
+	$sql = "select * from $DB.EVENTS where scheduled >= \"$mysqlMinDate\" and scheduled <= \"$mysqlMaxDate\" ";
+	if(isset($E)) {
+		$sql = $sql . "and IDevent=$E ";
+	}
+	$sql = $sql . "order by scheduled";
+	
+	$result=mysql_query($sql, $server);
+	
+	$EVENTS = array();
+	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		$n = $line['IDevent'];
+		foreach ($line as $item=>$value) {
+			$EVENTS[$n][$item] = "$value";
+		}
+	}
+}
+
+/* if we don't have an EVENTS array, build an empty one */
+
+if(!isset($EVENTS)) {
+	$EVENTS[0] = array();
+}
+ /* Display everything */
+
+if(isset($D)) {
+        showDay($Y,$M,$D,$lastDay,$EVENTS,$months,$days,$msg,$topmsg);
+}
+else {
+        showMonth($Y,$M,$lastDay,$date,$EVENTS,$months,$days,$msg,$topmsg);
+}
+
+?>

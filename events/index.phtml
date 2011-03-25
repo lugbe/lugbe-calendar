@@ -1,0 +1,84 @@
+<?php
+	// this is the default template all pages at www.lugbe.ch
+	// are built upon.
+
+	// markus@wernig.net
+
+	// define some variables that will be used by the included file
+
+	$page_title = "Veranstaltungskalender";
+	$author = "webmaster";
+	$changed_by = "";
+	$create_date = "";
+	$change_date = "";
+
+	// additional keywords for search engines
+
+	$additional_keywords= "";
+	$special_css_style = "";
+	$special_header = "";
+
+	// the documet root. we use file system paths for performance.
+	// ATTENTION: this may change!! Maybe we want an URL?
+
+	$document_root = "/www/doc/lugbe/www.lugbe.ch";
+
+	// this will be included in the header
+
+	$special_header_include_file_path ="";
+
+	// this will be included at the beginning of the body
+
+	$special_body_include_file_path =""; 
+
+	// if we include JS, this will become <SCRIPT LANGUAGE="Javascript" SRC="$javascript_src_file_path"> </SCRIPT>
+
+	$javascript_src_file_path ="";
+
+	// A quick hack to include a navigation link under the logo. This must be valid HTML.
+
+	$nav_link = "
+<br>
+<a href='/action/events/rules.phtml'>Kalender-README</a><br><br>
+<a href='http://events.lugbe.ch/action/events/rss/'>RSS-Feed <img src=/images/rss.gif border=0></a>\n";
+
+	// ***********************
+	
+	// now include the headers
+	// change the path here if you want to include another header
+
+	$header_include_file_path = "$document_root/include/header_include.tmpl";
+
+	include $header_include_file_path;
+?>
+
+
+<!-- HEADER END <<<<<<<<<
+*************************
+CONTENT START -->
+
+
+<br>
+<p> <iframe src="http://localhost/events/events_iframe.phtml" name="Events" type="text/html" width="100%" height="800" frameborder="0" style="border-width:0px">
+<p>Ihr Browser unterst&uuml;tzt keine externen Objekte. Sie finden den Eventkalender
+hier: <a href="http://localhost/events/events.phtml">http://localhost/events/events.phtml</a>
+</iframe>
+</p>
+
+<!-- CONTENT END <<<<<<<<<
+************************** 
+FOOTER START -->
+
+
+<?php 
+	// this will be included in the footer
+
+	$special_footer_include_file_path ="";
+
+	// now include the footers
+	// change the path here if you want to include another footer
+
+	$footer_include_file_path = "$document_root/include/footer_include.tmpl";
+
+	include $footer_include_file_path;
+?>	    

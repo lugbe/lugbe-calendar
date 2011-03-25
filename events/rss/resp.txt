@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- generator="FeedCreator 1.7.2" -->
+<rdf:RDF
+    xmlns="http://purl.org/rss/1.0/"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel rdf:about="http://www.lugbe.ch/action/events/rss//action/events/rss/index.php">
+        <title>LugBE Events</title>
+        <description>Die n&amp;auml;chsten Events</description>
+        <link>http://events.lugbe.ch/action/events/</link>
+        <image rdf:resource="http://www.lugbe.ch/images/lugbe_logo.jpg" />
+       <dc:date>2005-06-03T17:28:16+01:00</dc:date>
+        <items>
+            <rdf:Seq>
+            </rdf:Seq>
+        </items>
+    </channel>
+    <image rdf:about="http://www.lugbe.ch/images/lugbe_logo.jpg">
+        <title>LugBE Logo</title>
+        <link>http://www.lugbe.ch</link>
+        <url>http://www.lugbe.ch/images/lugbe_logo.jpg</url>
+    </image>
+</rdf:RDF>

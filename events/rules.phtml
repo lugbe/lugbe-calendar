@@ -1,0 +1,155 @@
+<?php
+	// this is the default template all pages at www.lugbe.ch
+	// are built upon.
+
+	// markus@wernig.net
+
+	// define some variables that will be used by the included file
+
+	$page_title = "LugBE Veranstaltungskalender";
+	$author = "webmaster at lugbe.ch";
+	$changed_by = "";
+	$create_date = "";
+	$change_date = "";
+
+	// additional keywords for search engines
+
+	$additional_keywords= "";
+	$special_css_style = "";
+	$special_header = "";
+
+	// the documet root. we use file system paths for performance.
+	// ATTENTION: this may change!! Maybe we want an URL?
+
+	$document_root = "/www/doc/lugbe/www.lugbe.ch";
+
+	// this will be included in the header
+
+	$special_header_include_file_path ="";
+
+	// this will be included at the beginning of the body
+
+	$special_body_include_file_path =""; 
+
+	// if we include JS, this will become <SCRIPT LANGUAGE="Javascript" SRC="$javascript_src_file_path"> </SCRIPT>
+
+	$javascript_src_file_path ="";
+	
+
+	$nav_link = "
+<br>
+<a href='/action/events/'>Zum Kalender</a>\n";
+
+	// ***********************
+	
+	// now include the headers
+	// change the path here if you want to include another header
+
+	$header_include_file_path = "$document_root/include/header_include.tmpl";
+
+	include $header_include_file_path;
+?>
+
+
+<!-- HEADER END <<<<<<<<<
+*************************
+CONTENT START -->
+
+<h1>LugBE-Eventkalender</h1>
+<h2>Ein paar Bemerkungen und Spielregeln</h2>
+<p>Hallo! Dies ist der Veranstaltungskalender der Linux User Group Bern. Hier kann man <br>
+        im Prinzip drei Dinge tun:<br>
+        - Events nach Datum suchen und anschauen<br>
+        - Sich f&uuml;r Events anmelden<br>
+        - Eigene Events vorschlagen<br>
+        <br>
+	F&uuml;r die Anmeldung braucht man eine g&uuml;ltige Mail-Adresse, an
+	die dann einen Tag vor dem Anlass ein Erinnerungsmail geschickt wird.
+
+        <p>Punkt eins und zwei sollten einigermassen klar sein, f&uuml;r Punkt drei, "Eigene Events vorschlagen"
+        gibt es ein paar Dinge zu beachten:
+        <ul>
+        <li>Wir stellen den Kalender als Hilfsmittel und Kommunikationswerkzeug zur Verf&uuml;gung. Jeder darf
+        darin LugBE-relevante Events eintragen.<br>
+        <li>Nachdem ein Event eingetragen wurde, muss es vom LugBE-Vorstand best&auml;tigt werden. Es ist dann
+        mit diesem Symbol gekennzeichnet: <img src=/images/ok.png alt=ok border=0>, unbest&auml;tigte
+        Events tragen folgendes Zeichen: <img src=/images/no.png alt=no border=0>. Nicht best&auml;tigte
+        Events finden entweder nicht statt oder sind LugBE-extern und k&ouml;nnen daher nicht von uns
+        best&auml;tigt werden.<br>
+        <li>Es d&uuml;rfen auch Events eingetragen werden, die nicht direkt mit der LugBE zu tun haben, aber
+        mit Linux im weiteren Sinn (Linuxtage, Vortr&auml;ge usw.). Wir haben diese M&ouml;glichkeit
+        bewusst sehr offen gehalten. Sollte sie missbraucht werden, um kommerzielle Werbung, Nonsens oder
+        irrelevante Themen einzutragen, werden wir diese M&ouml;glichkeit einschr&auml;nken.
+        <li>Der Vorstand darf eingetragene Events ver&auml;ndern, verschieben oder l&ouml;schen.
+        </ul>
+	<p>So, alles klar? Dann viel Spass im Kalender. Um einen Tag im Kalender anzuzeigen, einfach
+	auf das entsprechende Feld in der Monatsansicht klicken.
+	
+	<p>Damit der Kalender angezeigt werden kann, muss dein Browser IFrames unterst&uuml;tzen.<br>
+	Um sich anzumelden oder ein Event einzutragen, m&uuml;ssen eine g&uuml;ltige Email-Adresse
+	eingegeben und ein Cookie akzeptiert werden.
+	<p>Alle Anl&auml;sse finden, wo nicht anders vermerkt, im <a href=/action/nexttreff.phtml>Rest. Beaulieu, Erlachstr. 3, 3012 Bern,</a> statt.
+	<p><a href="/action/events/">Zum Kalender</a>
+
+	<a name=rss></a>
+	<p><b>Events via RSS-Feed abonnieren</b>
+	<p>Es ist möglich den Eventkalender als RSS-Feed mit
+	einem <a href='http://www.rss-verzeichnis.de/rss-reader.php' target=_blank>RSS-Reader</a> zu abonnieren um über künftige Events im voraus
+	informiert zu werden.
+
+	<p><b>Warum RSS-Feeds?</b>
+	<p>- Jeder kann ohne Email Adresse abonnieren.<br>
+	- Maschinenlesbar und standartisiert, dank sei XML<br>
+	- Inhaltbezogen<br>
+	- Keine Werbung (normalerweise...)
+
+	<p><b>Abonnieren</b>
+	<p>Die URL um den RSS-Feed zu abonnieren lautet
+	<a href='http://events.lugbe.ch/action/events/rss/'>http://events.lugbe.ch/action/events/rss/ <img src=/images/rss.gif border=0></a>. 
+
+	<p><b>Sreenshot</b>
+	<p>Everybody likes Screenshots: <a href=http://www.renemoser.net/trash/event2rss.jpg target=_blank>http://www.renemoser.net/trash/event2rss.jpg</a>
+	(jaja ich weiss... wir haben Windows-Clients im Geschäft).
+
+	<p><b>Funktionsweise</b>
+	<p>Der RSS-Feed funktioniert so, dass er checkt, ob in einer bestimmten
+	Zeitspanne ein Event stattfindet. Dieses wird dann als News (XML) 
+	angezeigt. Standardmässig ist diese Zeitspanne 7 Tage. Es ist jedoch 
+	möglich, eine andere Zeitspanne zu wählen mittels der GET-Variable 
+	"days".  Es ist möglich 1, 3, 14, 21, oder 30 Tage zu wählen. 
+	Der Link würde sich dann wie folgt verändern:<br>
+	http://events.lugbe.ch/action/events/rss/?days=3 --> 
+	Zeigt Events 3 Tage im voraus als News.<br>
+	http://events.lugbe.ch/action/events/rss/?days=30 --> 
+	Zeigt Events 30 Tage im voraus als News.
+
+	<p>Natürlich ist es erlaubt, sich 2 EventFeeds zu abonnieren, ein 
+	Feed 14 Tage im voraus und der zweite 1 Tag im voraus als Reminder.
+
+	<p><b>Fazit</b>
+	<p>RSS ist sexy. Probiert es einfach mal aus, es kostet nix  :)  viel Spass
+
+	<p><b>Links</b>
+	<p><a href=http://www.lugbe.ch/action/events/>Kalender-Startseite</a><br>
+	RSS-Reader gibts wie Sand am Meer, Firefox kann es von Haus aus (fragt
+	Gaudenz wie *g*), unter <a href=http://www.rss-verzeichnis.de/rss-reader.php target=_blank>
+	http://www.rss-verzeichnis.de/rss-reader.php</a> gibts eine kleine Übersicht.<br> 
+	<a href=http://de.wikipedia.org/wiki/RSS target=_blank>Mehr zum Thema RSS-Feeds: http://de.wikipedia.org/wiki/RSS</a>
+
+<!-- CONTENT END <<<<<<<<<
+************************** 
+FOOTER START -->
+
+
+<?php 
+	// this will be included in the footer
+
+	$special_footer_include_file_path ="";
+
+	// now include the footers
+	// change the path here if you want to include another footer
+
+	$footer_include_file_path = "$document_root/include/footer_include.tmpl";
+
+	include $footer_include_file_path;
+?>	    

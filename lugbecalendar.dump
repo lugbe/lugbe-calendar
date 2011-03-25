@@ -1,0 +1,81 @@
+-- MySQL dump 10.9
+--
+-- Host: localhost    Database: LUGBE
+-- ------------------------------------------------------
+-- Server version	4.1.10a-wernig.net-log
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+
+use $DB;
+
+--
+-- Table structure for table `EVENTS`
+--
+
+DROP TABLE IF EXISTS `EVENTS`;
+CREATE TABLE `EVENTS` (
+  `IDevent` int(11) NOT NULL auto_increment,
+  `title` varchar(128) NOT NULL default '',
+  `FKuid` int(11) NOT NULL default '0',
+  `description` longtext NOT NULL,
+  `registered` datetime default NULL,
+  `scheduled` datetime default NULL,
+  `numReg` int(11) default '0',
+  `end` datetime default NULL,
+  `type` varchar(20) default NULL,
+  `status` varchar(20) default NULL,
+  `eml` varchar(64) default NULL,
+  PRIMARY KEY  (`IDevent`),
+  UNIQUE KEY `scheduled` (`scheduled`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Table structure for table `PEOPLE`
+--
+
+DROP TABLE IF EXISTS `PEOPLE`;
+CREATE TABLE `PEOPLE` (
+  `uid` int(11) NOT NULL auto_increment,
+  `gn` varchar(64) default NULL,
+  `sn` varchar(64) default NULL,
+  `mail` varchar(64) NOT NULL default '',
+  `alias` varchar(16) default NULL,
+  `joined` datetime default NULL,
+  `password` varchar(64) default NULL,
+  `session` varchar(128) default NULL,
+  `role` varchar(24) default NULL,
+  PRIMARY KEY  (`uid`),
+  UNIQUE KEY `alias` (`alias`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Table structure for table `REGISTRATIONS`
+--
+
+DROP TABLE IF EXISTS `REGISTRATIONS`;
+CREATE TABLE `REGISTRATIONS` (
+  `IDreg` bigint(20) NOT NULL auto_increment,
+  `FKIDevent` int(11) default NULL,
+  `eml` varchar(50) default NULL,
+  `registered` datetime default NULL,
+  `IP` varchar(20) default NULL,
+  `session` varchar(128) default NULL,
+  `notified` datetime default NULL,
+  PRIMARY KEY  (`IDreg`),
+  UNIQUE KEY `FKIDevent` (`FKIDevent`,`eml`),
+  UNIQUE KEY `FKIDevent_2` (`FKIDevent`,`session`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
